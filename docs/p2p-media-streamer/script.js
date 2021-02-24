@@ -17,7 +17,7 @@
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
-      audio: false,
+      audio: true,
       video: true
     })
    .catch(console.error);
