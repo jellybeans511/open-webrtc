@@ -1,12 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+  <head>
     <meta charset="UTF-8">
-    <title>Selector</title>
+    <title>Control</title>
+    <h1>Bakuretsu Veeno kun</h1>
+    <IMG class="displayed" link rel="shortcut icon" href="/images/sad.jpg">
+    <!--<img src="./images/logo3-clear.png" alt="Remote monitoring system Vehicle"><br>-->
+    <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+    <!-- <meta http-equiv="Content-Security-Policy"
+          content="script-src 'self' 'unsafe-inline';" /> -->
+    <link rel="stylesheet" href="style.css">
+    <!--<script src="/socket.io/socket.io.js"></script>-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
+    <script src="control.js" defer></script>
+  </head>
+  <body>
+    
+    <div class="p2p-media">
+      <div class="remote-stream">
+        <video id="js-remote-stream"></video>
+      </div>
+      <div class="local-stream">
+        <video id="js-local-stream"></video>
+        <p>Your ID: <span id="js-local-id"></span></p>
+        <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
+        <button id="js-call-trigger">Call</button>
+        <button id="js-close-trigger">Close</button>
+      </div>
+    </div>
 
-<body>
-    <h1>Please choice Ver...</h1>
-    <a href="p2p-media-streamer/index.html">streamer</a><br>
-    <a href="p2p-media-listener/index.html">listener</a>
-</body>
+<div class="split-item split-right">
+        <div class="split-right__inner">
+    <table>
+      <tbody>
+        <h2>Vehicle name:<span id="vehicle-name"></span></h2>
+          <tr>
+              <th>EngineSpeed:<span id="engine-speed"></span></th>
+          </tr>
+          <tr>
+              <th>Speed:<span id="speed"></span></th>
+          </tr>
+          <tr>
+              <th>Latitude:<span id="latitude"></span></th>
+          </tr>
+          <tr>
+              <th>Longtitude:<span id="longtitude"></span></th>
+          </tr>
+          <tr>
+              <th>Heading:<span id="heading"></span></th>
+          </tr>
+          <tr>
+              <th>PTO:<span id="pto"></span></th>
+          </tr>
+          <tr>
+            <th>Hitch:<span id="hitch"></span></th>
+        </tr>
+      </tbody>
+  </table>
 
+  <p>//////////Debug Button//////////</p>
+  <input type="text" id="yolosta" placeholder="Input here YoloStatus"><br>
+  <button id="debug-send">YoloInfoSend to vehicle</button>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
