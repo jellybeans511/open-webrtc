@@ -1,4 +1,5 @@
 API_KEY = "e316eaa7-4c1c-468c-b23a-9ce51b074ab7";
+const username = window.prompt("Please input user name", "")
 
 const Peer = window.Peer;
 
@@ -25,7 +26,7 @@ const Peer = window.Peer;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
 
-  const peer = (window.peer = new Peer({
+  const peer = (window.peer = new Peer( username {
     key: API_KEY,
     debug: 3,
   }));
