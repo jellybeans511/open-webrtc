@@ -26,7 +26,7 @@ const Peer = window.Peer;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
 
-  const peer = (window.peer = new Peer( username {
+  const peer = (window.peer = new Peer("${username}" {
     key: API_KEY,
     debug: 3,
   }));
