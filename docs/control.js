@@ -8,6 +8,7 @@ const Peer = window.Peer;
   const localId = document.getElementById('js-local-id');
   const callTrigger = document.getElementById('js-call-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
+  const sendTrigger = document.getElementById('js-send-trigger');
   const remoteVideo = document.getElementById('js-remote-stream');
   const remoteId = document.getElementById('js-remote-id');
   const meta = document.getElementById('js-meta');
@@ -39,6 +40,70 @@ const Peer = window.Peer;
       return;
     }
 
+    const dataConnection = peer.connect(remoteId.value);
+
+    dataConnection.once('open', async () => {
+      messages.textContent += `=== DataConnection has been opened ===\n`;
+
+      sendTrigger.addEventListener('click', onClickSend);
+    });
+    
+        dataConnection.on('data', data => {
+      messages.textContent += `Remote: ${data}\n`;
+    });
+
+    dataConnection.once('close', () => {
+      messages.textContent += `=== DataConnection has been closed ===\n`;
+      sendTrigger.removeEventListener('click', onClickSend);
+    });
+
+    // Register closing handler
+    closeTrigger.addEventListener('click', () => dataConnection.close(true), {
+      once: true,
+    });
+
+    function onClickSend() {
+      const data = localText.value;
+      dataConnection.send(data);
+
+      messages.textContent += `You: ${data}\n`;
+      localText.value = '';
+    }
+  });
+
+  peer.once('open', id => (localId.textContent = id));
+
+  // Register connected peer handler
+  peer.on('connection', dataConnection => {
+    dataConnection.once('open', async () => {
+      messages.textContent += `=== DataConnection has been opened ===\n`;
+
+      sendTrigger.addEventListener('click', onClickSend);
+    });
+
+    dataConnection.on('data', data => {
+      messages.textContent += `Remote: ${data}\n`;
+    });
+
+    dataConnection.once('close', () => {
+      messages.textContent += `=== DataConnection has been closed ===\n`;
+      sendTrigger.removeEventListener('click', onClickSend);
+    });
+
+    // Register closing handler
+    closeTrigger.addEventListener('click', () => dataConnection.close(true), {
+      once: true,
+    });
+
+    function onClickSend() {
+      const data = localText.value;
+      dataConnection.send(data);
+
+      messages.textContent += `You: ${data}\n`;
+      localText.value = '';
+    }
+  });
+    
     const mediaConnection = peer.call(remoteId.value, localStream);
 
     mediaConnection.on('stream', async stream => {
