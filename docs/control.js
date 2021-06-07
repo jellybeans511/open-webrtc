@@ -1,5 +1,6 @@
 API_KEY = "e316eaa7-4c1c-468c-b23a-9ce51b074ab7";
 const username = window.prompt("Please input user name", "")
+const localvideo_type = window.confirm("Is it okay to use the camera? \n If this answer is No, use schreen sharing");
 
 const Peer = window.Peer;
 
@@ -16,11 +17,19 @@ const Peer = window.Peer;
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
 
-  const localStream = await navigator.mediaDevices
+  let localStream;
+  if (localvideo_type==true) {
+  localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
+  }
+
+  else if (localvideo_type == false) {
+    localStream = await navigator.mediaDevices.getDisplayMedia();
+  }
+
   //.catch(console.error('getUserMedia() is unsucess'));
 
   // Render local stream
@@ -65,7 +74,7 @@ const Peer = window.Peer;
     });
 
     dataConnection.on('data', data => {
-      messages.textContent += `Remote: ${data}\n`;
+      messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
     });
 
     dataConnection.once('close', () => {
@@ -114,7 +123,7 @@ const Peer = window.Peer;
     });
 
     dataConnection.on('data', data => {
-      messages.textContent += `Remote: ${data}\n`;
+      messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
     });
 
     dataConnection.once('close', () => {
