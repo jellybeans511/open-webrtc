@@ -104,7 +104,7 @@ const Peer = window.Peer;
       // Render remote stream for callee
       remoteVideo.srcObject = stream;
       remoteVideo.playsInline = true;
-      await remoteVideo.play().catch(console.error);
+      await remoteVideo.play()//.catch(console.error);
     });
 
     mediaConnection.once('close', () => {
@@ -145,5 +145,5 @@ const Peer = window.Peer;
     }
   });
 
-  peer.on('error', console.error);
+//  peer.on('error', console.error);
 })();
