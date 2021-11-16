@@ -22,9 +22,11 @@ const Peer = window.Peer;
   localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: true,
-    })
-  }
+      video: {
+        width: { min: 1024, ideal: 1280, max: 1920 },
+        height: { min: 776, ideal: 720, max: 1080 }
+      })
+    }
 
   else if (localvideo_type == false) {
     localStream = await navigator.mediaDevices.getDisplayMedia();
