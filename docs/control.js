@@ -53,7 +53,9 @@ const Peer = window.Peer;
       return;
     }
 
-    const mediaConnection = peer.call(remoteId.value, localStream);
+    const mediaConnection = peer.call(remoteId.value, localStream, {
+        videoCodec: 'VP9',
+    });
 
     mediaConnection.on('stream', async stream => {
       // Render remote stream for caller
