@@ -7,6 +7,7 @@ const Peer = window.Peer;
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
   const localId = document.getElementById('js-local-id');
+  const captureTrigger = document.getElementById('js-startcapture-trigger');
   const callTrigger = document.getElementById('js-call-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
   const localText = document.getElementById('js-local-text');
@@ -17,22 +18,23 @@ const Peer = window.Peer;
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
 
-  let localStream;
-  if (localvideo_type==true) {
-  localStream = await navigator.mediaDevices
-    .getUserMedia({
-      audio: true,
-      video: {
-        width: { min: 1024, ideal: 1280},
-        height: { min: 776, ideal: 720}
-      }
-     })
-   }
+  const peer = (window.peer = new Peer(username, {
+    key: API_KEY,
+    debug: 3,
+  }));
 
-  else if (localvideo_type == false) {
-    localStream = await navigator.mediaDevices.getDisplayMedia();
-  }
-
+  captureTrigger.addEventListener('click',() => {
+    let localStream;
+    if (localvideo_type==true) {
+    localStream = await navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: true,
+      })
+    }
+    else if (localvideo_type == false) {
+      localStream = await navigator.mediaDevices.getDisplayMedia();
+    }
   //.catch(console.error('getUserMedia() is unsucess'));
 
   // Render local stream
@@ -40,11 +42,7 @@ const Peer = window.Peer;
   localVideo.srcObject = localStream;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
-
-  const peer = (window.peer = new Peer(username, {
-    key: API_KEY,
-    debug: 3,
-  }));
+  })
 
   // Register caller handler
   callTrigger.addEventListener('click', () => {
@@ -54,9 +52,7 @@ const Peer = window.Peer;
       return;
     }
 
-    const mediaConnection = peer.call(remoteId.value, localStream, {
-        videoCodec: 'VP9'
-    });
+    const mediaConnection = peer.call(remoteId.value, localStream);
 
     mediaConnection.on('stream', async stream => {
       // Render remote stream for caller
@@ -109,7 +105,7 @@ const Peer = window.Peer;
       // Render remote stream for callee
       remoteVideo.srcObject = stream;
       remoteVideo.playsInline = true;
-      await remoteVideo.play()//.catch(console.error);
+      await remoteVideo.play().catch(console.error);
     });
 
     mediaConnection.once('close', () => {
@@ -150,5 +146,5 @@ const Peer = window.Peer;
     }
   });
 
-//  peer.on('error', console.error);
+  peer.on('error', console.error);
 })();
