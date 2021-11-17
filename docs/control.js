@@ -26,14 +26,14 @@ const Peer = window.Peer;
   captureTrigger.addEventListener('click',() => {
     let localStream;
     if (localvideo_type==true) {
-    localStream = await navigator.mediaDevices
+    localStream = navigator.mediaDevices
       .getUserMedia({
         audio: false,
         video: true,
       })
     }
     else if (localvideo_type == false) {
-      localStream = await navigator.mediaDevices.getDisplayMedia();
+      localStream = navigator.mediaDevices.getDisplayMedia();
     }
   //.catch(console.error('getUserMedia() is unsucess'));
 
