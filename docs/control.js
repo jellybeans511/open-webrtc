@@ -16,7 +16,7 @@ const Peer = window.Peer;
   const remoteId = document.getElementById('js-remote-id');
   const messages = document.getElementById('js-messages');
   let localVideoBox = document.getElementsByName('stream-type');
-  let localVideoCodec = document.getElementById('video-codec');
+  let localVideoCodec = document.getElementById('video-codec').value;
   let localVideoType = 'camera';
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
@@ -69,7 +69,7 @@ const Peer = window.Peer;
     }
 
     let mediaConnection = peer.call(remoteId.value, mediaStream, {
-      videoCodec: 'VP9'
+      videoCodec: String(localVideoCodec)
     });
     //videoCodec: String(document.getElementById('video-codec').value)
 
@@ -121,7 +121,7 @@ const Peer = window.Peer;
   // Register callee handler
   peer.on('call', mediaConnection => {
     mediaConnection.answer(mediaStream, {
-      videoCodec: 'VP9'
+      videoCodec: String(localVideoCodec)
     });
     //videoCodec: String(document.getElementById('video-codec').value)
 
