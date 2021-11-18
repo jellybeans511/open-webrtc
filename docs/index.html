@@ -25,6 +25,11 @@
         VideoHeight:<input type="number" id="video-height" max="1080" value="720"><br>
         VideoWidth:<input type="number" id="video-width" max="1920" value="1280"><br>
         FrameRate:<input type="number" id="video-rate" min="1" max="60" value="15"><br>
+        VideoCodec:<select id="video-codec">
+          <option value="VP9">VP9:動きに強い,CPU負荷中,普及率普通</option>
+          <option value="VP8">VP8:特徴無し,CPU負荷小,普及率普通</option>
+          <option value="H264">H264:動きに弱い,負荷小,普及率高</option>
+          </select><br>
         <button id="js-startcapture-trigger">Get Capture</button>
         <p>Your ID: <span id="js-local-id"></span></p>
         <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
