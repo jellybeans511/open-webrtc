@@ -56,7 +56,7 @@ const Peer = window.Peer;
     }
     else if (localVideoType == 'screen') {
       navigator.mediaDevices.getDisplayMedia({
-        audio: false,
+        audio: true,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
