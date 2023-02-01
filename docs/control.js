@@ -121,7 +121,7 @@ const Peer = window.Peer;
   // Register callee handler
   peer.on('call', mediaConnection => {
     mediaConnection.answer(mediaStream, {
-      videoCodec: localVideoCodec
+      videoCodec: document.getElementById('video-codec').value
     });
     //videoCodec: String(document.getElementById('video-codec').value)
 
