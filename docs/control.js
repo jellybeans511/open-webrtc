@@ -69,9 +69,10 @@ const Peer = window.Peer;
     }
 
     let mediaConnection = peer.call(remoteId.value, mediaStream, {
-      videoCodec: localVideoCodec
+      //videoCodec: localVideoCodec
+      videoCodec: String(document.getElementById('video-codec').value)
     });
-    //videoCodec: String(document.getElementById('video-codec').value)
+    
 
     console.log(localVideoCodec.value);
 
