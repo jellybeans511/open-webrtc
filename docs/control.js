@@ -36,7 +36,7 @@ const Peer = window.Peer;
     }
     if (localVideoType == 'camera') {
       navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
