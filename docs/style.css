@@ -1,0 +1,39 @@
+IMG.displayed {
+    display: block;
+    margin-left: auto;
+    margin-right: auto }
+
+body {
+    background-image: url("./images/main.jpg");
+    background-color:rgba(255,255,255,0.5);
+    background-blend-mode:lighten;
+}
+#my-id {
+    font-family: cursive;
+}
+table {
+    font-style: italic;
+    font-style: oblique;
+}
+th {
+    font-size: large;
+}
+#midashi {
+    font-style: italic;
+}
+
+.split{
+    display: table;
+    width: 100%;    
+}
+.split-item{
+    display: table-cell;
+    padding: 50px;
+}
+
+.split-left__inner{
+    width: 50%;
+}
+.split-right__inner{
+    padding: 1px;
+}
