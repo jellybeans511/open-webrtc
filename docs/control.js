@@ -1,7 +1,7 @@
 const API_KEY = "e316eaa7-4c1c-468c-b23a-9ce51b074ab7";
 //const username = window.prompt("Please input user name", "")
 //const localVideoType = window.confirm("Is it okay to use the camera? \n If this answer is No, use schreen sharing");
-
+//sa
 const Peer = window.Peer;
 
 (async function main() {
