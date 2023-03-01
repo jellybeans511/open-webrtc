@@ -19,20 +19,34 @@
       <div class="remote-stream">
         <video id="js-remote-stream" width="480" height="320"></video>
       </div>
+
+
+
       <div class="local-stream">
         <video id="js-local-stream" width="480" height="320"></video><br>
+        <p>your name. <input type="text" placeholder="Kimino nawa." id="js-your-id">
+        <button id="js-makepeer-trigger">Make Peer</button>
+        <p>Your ID: <span id="js-local-id"></span></p>
+
         <form id="video-box">CameraCapture:<input type="radio" name="stream-type" value="camera" checked> ScreenShare:<input type="radio" name="stream-type"value="screen"></form><br>
+        SelectDevice:<select name="" id="" class="device-select"><option value="">Select camera</option></select><br>
         VideoHeight:<input type="number" id="video-height" max="1080" value="720"><br>
         VideoWidth:<input type="number" id="video-width" max="1920" value="1280"><br>
-        FrameRate:<input type="number" id="video-rate" min="1" max="60" value="15"><br>
-        VideoCodec:<select id="video-codec">
+        FrameRate:<input type="number" id="video-rate" min="1" max="60" value="15">Hz<br>
+        BitRate:<input type="number" id="js-video-byte" min="500" value="1500">kbps<br>
+        VideoCodec:<select id="js-video-codec">
           <option value="VP9">VP9:動きに強い,CPU負荷中,普及率普通</option>
           <option value="VP8">VP8:特徴無し,CPU負荷小,普及率普通</option>
           <option value="H264">H264:動きに弱い,負荷小,普及率高</option>
-          <option value="AV1">AV1:圧縮率最強,負荷大,要GPU</option>
+          <option value="AV1">AV1:動きに強い,負荷大,普及率低</option>
           </select><br>
+          ContentType:<select id="js-video-content">
+            <option value="motion">motion</option>
+            <option value="text">text</option>
+            <option value="detail">detail</option>
+            <option value="">default</option>
+            </select><br>
         <button id="js-startcapture-trigger">Get Capture</button>
-        <p>Your ID: <span id="js-local-id"></span></p>
         <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
         <button id="js-call-trigger">Call</button>
         <button id="js-close-trigger">Close</button>
