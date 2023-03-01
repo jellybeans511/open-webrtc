@@ -1,5 +1,5 @@
 const API_KEY = "94d5c621-415d-4003-a1be-822df987831f";
-//const username = window.prompt("Please input user name", "")
+//const userName = window.prompt("Please input user name", "")
 //const localVideoType = window.confirm("Is it okay to use the camera? \n If this answer is No, use schreen sharing");
 //sa
 const Peer = window.Peer;
@@ -23,8 +23,15 @@ const Peer = window.Peer;
   let localVideoType = 'camera';
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
-  let peer = null;
+  let peer = null
+  let targetDevice = null;
+  let mediaConnection = null;
+  let dataConnection = null;
 
+  /*const peer = (window.peer = new Peer(userName, {
+    key: API_KEY,
+    debug: 3,
+  }));*/
 
   makePeerTrigger.addEventListener('click', () => {
     var userName = document.getElementById('js-your-id').value;
@@ -37,10 +44,52 @@ const Peer = window.Peer;
     ))
     //document.getElementById('js-local-id') = String(peer);
     peer.on('open', id => (localId.textContent = id));
-
+    waitCall();
   });
 
-  let videoOptions = {
+  function populateCameras() {
+    if (!("mediaDevices" in navigator)) return;
+    navigator.mediaDevices.enumerateDevices().then(mediaDevices => {
+      while (cameraSelect.options.length > 0) {
+        cameraSelect.remove(0);
+      }
+      const defaultOption = document.createElement("option");
+      defaultOption.id = "default";
+      defaultOption.textContent = "(default camera) ";
+      cameraSelect.appendChild(defaultOption);
+
+      const videoInputDevices = mediaDevices.filter(
+        mediaDevice => mediaDevice.kind == "videoinput"
+      );
+      if (videoInputDevices.length > 0) {
+        cameraSelect.disabled = false;
+      }
+      videoInputDevices.forEach((videoInputDevice, index) => {
+        if (!videoInputDevice.deviceId) {
+          return;
+        }
+        const option = document.createElement("option");
+
+        option.id = videoInputDevice.deviceId;
+        option.textContent = videoInputDevice.label || `Camera ${index + 1}`;
+        option.selected = deviceId == option.id;
+        cameraSelect.appendChild(option);
+      });
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded", populateCameras);
+  if ("mediaDevices" in navigator) {
+    navigator.mediaDevices.addEventListener("devicechange", populateCameras);
+  }
+
+  let deviceId = "default";
+  cameraSelect.onchange = _ => {
+    deviceId = cameraSelect.selectedOptions[0].id;
+    targetDevice = deviceId
+  };
+
+  let videoCallOptions = {
     videoBandwidth: Number(document.getElementById('js-video-byte').value),
     videoCodec: String(document.getElementById('js-video-codec').value),
     audioCodec: "opus"
@@ -62,9 +111,7 @@ const Peer = window.Peer;
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
           frameRate: Number(document.getElementById('video-rate').value),
-          /*deviceId: {
-            exact: cameraOptions.value
-          }*/
+          deviceId: String(targetDevice)
         }
       }).then(function (mediaStream) {
         localStream = mediaStream;
@@ -73,6 +120,7 @@ const Peer = window.Peer;
         localVideo.play().catch(console.error);
         videoTrack = localStream.getTracks()[0];
         videoTrack.contentHint = document.getElementById("js-video-content").value;
+        //console.log(targetDevice);
       })
     }
     else if (localVideoType == 'screen') {
@@ -99,21 +147,23 @@ const Peer = window.Peer;
   // Register caller handler
   callTrigger.addEventListener('click', () => {
 
+    if (peer == null) {
+      console.log('Peer is not opened');
+    }
     if (peer != null) {
-
-
       // Note that you need to ensure the peer has connected to signaling server
       // before using methods of peer instance.
-      if (!peer.open) {
+      /*if (!peer.open) {
         return;
-      }
+      }*/
 
-      videoOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
-      videoOptions.videoCodec = String(document.getElementById('js-video-codec').value);
+      videoCallOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
+      videoCallOptions.videoCodec = String(document.getElementById('js-video-codec').value);
+      //console.log(videoCallOptions);
+      mediaConnection = peer.call(remoteId.value, localStream, videoCallOptions);
 
-      let mediaConnection = peer.call(remoteId.value, localStream, videoOptions);
-
-      mediaConnection.on('stream', async stream => {
+      mediaConnection.on('stream', async (stream) => {
+        console.log('MORATTAYO')
         // Render remote stream for caller
         remoteVideo.srcObject = stream;
         remoteVideo.playsInline = true;
@@ -125,11 +175,10 @@ const Peer = window.Peer;
         remoteVideo.srcObject = null;
       });
 
-      let dataConnection = peer.connect(remoteId.value);
+      dataConnection = peer.connect(remoteId.value);
 
       dataConnection.once('open', async () => {
         messages.textContent += `=== DataConnection has been opened ===\n`;
-
         sendTrigger.addEventListener('click', onClickSend);
       });
 
@@ -156,60 +205,66 @@ const Peer = window.Peer;
   });
 
   // Register callee handler
-  if (peer != null) {
-    peer.on('call', mediaConnection => {
-      console.log("Moriteu:", videoTrack.contentHint);
+  function waitCall() {
+    if (peer != null) {
+      peer.on('call', mediaConnection => {
 
-      videoOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
-      videoOptions.videoCodec = String(document.getElementById('js-video-codec').value);
+        let videoAnswerOptions = {
+          videoBandwidth: Number(document.getElementById('js-video-byte').value),
+          videoCodec: String(document.getElementById('js-video-codec').value),
+          audioCodec: "opus"
+        };
+        videoAnswerOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
+        //videoAnswerOptions.videoCodec = String(document.getElementById('js-video-codec').value);
+        //console.log(videoAnswerOptions);
 
-      mediaConnection.answer(localStream, videoOptions);
+        mediaConnection.answer(localStream, videoAnswerOptions);
 
-      mediaConnection.on('stream', async stream => {
-        // Render remote stream for callee
-        remoteVideo.srcObject = stream;
-        remoteVideo.playsInline = true;
-        await remoteVideo.play().catch(console.error);
+        mediaConnection.on('stream', async (stream) => {
+          // Render remote stream for callee
+          remoteVideo.srcObject = stream;
+          remoteVideo.playsInline = true;
+          await remoteVideo.play().catch(console.error);
+        });
+
+        mediaConnection.once('close', () => {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        });
+
+        closeTrigger.addEventListener('click', () => mediaConnection.close(true));
       });
 
-      mediaConnection.once('close', () => {
-        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-        remoteVideo.srcObject = null;
+      peer.on('connection', dataConnection => {
+        dataConnection.once('open', async () => {
+          messages.textContent += `=== DataConnection has been opened ===\n`;
+          sendTrigger.addEventListener('click', onClickSend);
+        });
+
+        dataConnection.on('data', data => {
+          messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
+        });
+
+        dataConnection.once('close', () => {
+          messages.textContent += `=== DataConnection has been closed ===\n`;
+          sendTrigger.removeEventListener('click', onClickSend);
+        });
+
+        // Register closing handler
+        closeTrigger.addEventListener('click', () => dataConnection.close(true), {
+          once: true,
+        });
+
+        function onClickSend() {
+          const data = localText.value;
+          dataConnection.send(data);
+
+          messages.textContent += `You: ${data}\n`;
+          localText.value = '';
+        }
       });
-
-      closeTrigger.addEventListener('click', () => mediaConnection.close(true));
-    });
-
-    peer.on('connection', dataConnection => {
-      dataConnection.once('open', async () => {
-        messages.textContent += `=== DataConnection has been opened ===\n`;
-        sendTrigger.addEventListener('click', onClickSend);
-      });
-
-      dataConnection.on('data', data => {
-        messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
-      });
-
-      dataConnection.once('close', () => {
-        messages.textContent += `=== DataConnection has been closed ===\n`;
-        sendTrigger.removeEventListener('click', onClickSend);
-      });
-
-      // Register closing handler
-      closeTrigger.addEventListener('click', () => dataConnection.close(true), {
-        once: true,
-      });
-
-      function onClickSend() {
-        const data = localText.value;
-        dataConnection.send(data);
-
-        messages.textContent += `You: ${data}\n`;
-        localText.value = '';
-      }
-    });
-
-
-    peer.on('error', console.error);
+      peer.on('error', console.error);
+    }
   }
-})();
+}
+)();
