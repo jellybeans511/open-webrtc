@@ -5,7 +5,7 @@
 https://jellybeans511.github.io/open-webrtc/
 
 ###### Make peer
-あなたの名前をテキストボックスに入力し、ピアにするボタンを押します。あなたのピアIDが作成されます。
+Enter your name in the text box and click the Make Peer button. Your Peer ID will be created.
 
 ###### GetCapture
 You can choose to use camera or display mirroring. Image source parameters are set by text box as video height, video width, frame rate.
