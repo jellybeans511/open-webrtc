@@ -15,3 +15,5 @@ Enter the remote ID and press the Call button. If you have media stream, it will
 
 #### ※ISSUE
 If your video codec and remote video codec are different, you will miss exchanging media stream. It is unknown reason. Please set same codecs if you using this application.
+
+### The author is not responsible for any disadvantages caused by using this web page.
