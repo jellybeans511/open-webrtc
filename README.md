@@ -4,6 +4,9 @@
 #### Github pages
 https://jellybeans511.github.io/open-webrtc/
 
+## IMPORTANT!!!!
+This site uses API keys to identify Peers. If a user with this site's API key exists and the name of the Peer you created is called or invoked, communication may occur with an unexpected person.
+
 ###### Make peer
 Enter your name in the text box and click the Make Peer button. Your Peer ID will be created.
 
