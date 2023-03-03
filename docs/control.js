@@ -9,6 +9,7 @@ const Peer = window.Peer;
   const localId = document.getElementById('js-local-id');
   const makePeerTrigger = document.getElementById('js-makepeer-trigger');
   const captureTrigger = document.getElementById('js-startcapture-trigger');
+  const deleteCapturteTrigger = document.getElementById('js-deletecapture-trigger');
   const callTrigger = document.getElementById('js-call-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
   const localText = document.getElementById('js-local-text');
@@ -142,6 +143,11 @@ const Peer = window.Peer;
     }
 
     // detail,motion,text
+  })
+
+  deleteCapturteTrigger.addEventListener('click',()=> {
+    localStream = null;
+    localVideo.srcObject = null;
   })
 
   // Register caller handler
