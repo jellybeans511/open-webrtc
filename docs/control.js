@@ -1,4 +1,4 @@
-const API_KEY = "e316eaa7-4c1c-468c-b23a-9ce51b074ab7";
+const API_KEY = "94d5c621-415d-4003-a1be-822df987831f";
 //const userName = window.prompt("Please input user name", "")
 //const localVideoType = window.confirm("Is it okay to use the camera? \n If this answer is No, use schreen sharing");
 //sa
@@ -9,6 +9,7 @@ const Peer = window.Peer;
   const localId = document.getElementById('js-local-id');
   const makePeerTrigger = document.getElementById('js-makepeer-trigger');
   const captureTrigger = document.getElementById('js-startcapture-trigger');
+  const deleteCapturteTrigger = document.getElementById('js-deletecapture-trigger');
   const callTrigger = document.getElementById('js-call-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
   const localText = document.getElementById('js-local-text');
@@ -119,7 +120,9 @@ const Peer = window.Peer;
         localVideo.playsInline = true;
         localVideo.play().catch(console.error);
         videoTrack = localStream.getTracks()[0];
+        var videoTrackSettings = videoTrack.getSettings();
         videoTrack.contentHint = document.getElementById("js-video-content").value;
+        document.getElementById("js-estimated-latency").textContent =videoTrackSettings.latency;
         //console.log(targetDevice);
       })
     }
@@ -137,11 +140,18 @@ const Peer = window.Peer;
         localVideo.playsInline = true;
         localVideo.play().catch(console.error);
         videoTrack = localStream.getTracks()[0];
+        var videoTrackSettings = videoTrack.getSettings();
         videoTrack.contentHint = document.getElementById("js-video-content").value;
+        document.getElementById("js-estimated-latency").textContent =videoTrackSettings.latency;
       });
     }
 
     // detail,motion,text
+  })
+
+  deleteCapturteTrigger.addEventListener('click', () => {
+    localStream = null;
+    localVideo.srcObject = null;
   })
 
   // Register caller handler
@@ -159,7 +169,7 @@ const Peer = window.Peer;
 
       videoCallOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
       videoCallOptions.videoCodec = String(document.getElementById('js-video-codec').value);
-      console.log(videoCallOptions);
+      //console.log(videoCallOptions);
       mediaConnection = peer.call(remoteId.value, localStream, videoCallOptions);
 
       mediaConnection.on('stream', async (stream) => {
@@ -204,6 +214,22 @@ const Peer = window.Peer;
     }
   });
 
+  function estimateMediaLatency() {
+    console.log("local stream is null");
+    if (localStream != null) {
+      var videoTrackOr = localStream.getVideoTrack()[0];
+      var videoTrackSettings = videoTrackOr.getSettings();
+      console.log("null de ha aniyo");
+      if ("latency" in videoTrackSettings) {
+       // local.getTracks;
+        document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
+        console.log("latency is arimasu");
+      }
+    }
+  }
+
+  setInterval((estimateMediaLatency,100))
+
   // Register callee handler
   function waitCall() {
     if (peer != null) {
@@ -215,8 +241,8 @@ const Peer = window.Peer;
           audioCodec: "opus"
         };
         videoAnswerOptions.videoBandwidth = Number(document.getElementById('js-video-byte').value);
-        videoAnswerOptions.videoCodec = String(document.getElementById('js-video-codec').value);
-        console.log(videoAnswerOptions);
+        //videoAnswerOptions.videoCodec = String(document.getElementById('js-video-codec').value);
+        //console.log(videoAnswerOptions);
 
         mediaConnection.answer(localStream, videoAnswerOptions);
 

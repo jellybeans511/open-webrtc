@@ -24,6 +24,7 @@
 
       <div class="local-stream">
         <video id="js-local-stream" width="480" height="320"></video><br>
+        <p>Estimated camera latency: <span id ="js-estimated-latency"></span></p>
         <p>your name. <input type="text" placeholder="Kimino nawa." id="js-your-id">
         <button id="js-makepeer-trigger">Make Peer</button>
         <p>Your ID: <span id="js-local-id"></span></p>
@@ -47,6 +48,7 @@
             <option value="">default</option>
             </select><br>
         <button id="js-startcapture-trigger">Get Capture</button><br>
+        <button id="js-deletecapture-trigger">Delete Capture Source</button><br>
         <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
         <button id="js-call-trigger">Call</button>
         <button id="js-close-trigger">Close</button>
