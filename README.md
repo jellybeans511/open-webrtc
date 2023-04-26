@@ -19,6 +19,9 @@ You can choose to use camera or display mirroring. Image source parameters are s
 ###### Call
 Enter the remote ID and press the Call button. If you have media stream, it will be transmitted for remote peer. And if remote has media stream, you will receive remote media stream. Call options are bitrate and video codec and content type. It will be applied on pressing call button. Generally VP9 is recommended in video codec. If your PC is old, it is better to use VP8. I don't recommend using H264 in WebRTC. AV1 is very CPU intensive and is only recommended if hardware encoding and decoding is supported. For example, use a set of Jetson orin for encoding and RTX30 series for decoding.
 
+##### Pan Tilt Zoom
+If you use PTZ camera, you can control parameters of pan tilt zoom  by numner box. I only confirmed Insta360 Link.
+
 #### ※ISSUE
 If your video codec and remote video codec are different, you will miss exchanging media stream. It is unknown reason. Please set same codecs if you using this application.
 
