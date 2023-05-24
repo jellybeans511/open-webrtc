@@ -134,7 +134,7 @@ const Peer = window.Peer;
     }
     else if (localVideoType == 'screen') {
       navigator.mediaDevices.getDisplayMedia({
-        audio: false,
+        audio: true,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
@@ -234,6 +234,10 @@ const Peer = window.Peer;
     }
   }
 
+  let inputPan = 0;
+  let inputTilt = 0;
+  let inputZoom = 0;
+
   function adjustPTZ() {
 
     if (videoTrack == null) {
@@ -243,9 +247,9 @@ const Peer = window.Peer;
 
       if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
 
-        let inputPan = Number(document.getElementById('video-pan').value) * 3600;
-        let inputTilt = Number(document.getElementById('video-tilt').value) * 3600;
-        let inputZoom = Number(document.getElementById('video-zoom').value);
+        inputPan = Number(document.getElementById('video-pan').value) * 3600;
+        inputTilt = Number(document.getElementById('video-tilt').value) * 3600;
+        inputZoom = Number(document.getElementById('video-zoom').value);
 
         let ptzConstraints = {
           advanced: [{
@@ -307,6 +311,21 @@ const Peer = window.Peer;
 
         dataConnection.on('data', data => {
           messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
+          if(data.match("pan")) {
+            var splitPan=data.split(",");
+            document.getElementById('video-pan').value=splitPan[1];
+            console.log("Pan was adjusted");
+          }
+          else if(data.match("tilt")) {
+            var splitTilt=data.split(",");
+            document.getElementById('video-tilt').value=splitTilt[1];
+            console.log("Tilt was adjusted");
+          }
+          else if(data.match("zoom")) {
+            var splitZoom=data.split(",");
+            document.getElementById('video-zoom').value=splitZoom[1];
+            console.log("Zoom was adjusted");
+          }
         });
 
         dataConnection.once('close', () => {
