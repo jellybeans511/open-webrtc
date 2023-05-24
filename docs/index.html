@@ -24,7 +24,7 @@
 
       <div class="local-stream">
         <video id="js-local-stream" width="480" height="320"></video><br>
-        <p>Estimated camera latency: <span id ="js-estimated-latency"></span></p>
+        <p>Estimated camera latency: <span id ="js-estimated-latency"></span> sec</p>
         <p>your name. <input type="text" placeholder="Kimino nawa." id="js-your-id">
         <button id="js-makepeer-trigger">Make Peer</button>
         <p>Your ID: <span id="js-local-id"></span></p>
@@ -51,7 +51,10 @@
         <button id="js-deletecapture-trigger">Delete Capture Source</button><br>
         <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
         <button id="js-call-trigger">Call</button>
-        <button id="js-close-trigger">Close</button>
+        <button id="js-close-trigger">Close</button><br>
+        Pan:<input type="number" id="video-pan" max="150" min="-150" value="0">deg<br>
+        Tilt:<input type="number" id="video-tilt" max="150" min="-150" value="0">deg<br>
+        Zoom:<input type="number" id="video-zoom" min="100" max="400" value="100">%<br>
       </div>
      <div class="p2p-data">
        <pre class = "messages" id = "js-messages"></pre>

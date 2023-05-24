@@ -28,6 +28,9 @@ const Peer = window.Peer;
   let targetDevice = null;
   let mediaConnection = null;
   let dataConnection = null;
+  let videoTrack;
+  var videoTrackSettings;
+  var capabilities;
 
   /*const peer = (window.peer = new Peer(userName, {
     key: API_KEY,
@@ -97,7 +100,6 @@ const Peer = window.Peer;
   };
 
   let localStream = null;
-  let videoTrack = null;
 
   captureTrigger.addEventListener('click', () => {
     for (i = 0; i < localVideoBox.length; ++i) {
@@ -112,23 +114,27 @@ const Peer = window.Peer;
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
           frameRate: Number(document.getElementById('video-rate').value),
-          deviceId: String(targetDevice)
+          deviceId: String(targetDevice),
+          pan: true,
+          tilt: true,
+          zoom: true
         }
       }).then(function (mediaStream) {
         localStream = mediaStream;
         localVideo.srcObject = mediaStream;
         localVideo.playsInline = true;
         localVideo.play().catch(console.error);
-        videoTrack = localStream.getTracks()[0];
-        var videoTrackSettings = videoTrack.getSettings();
+        videoTrack = localStream.getTracks()[1];//[0]is audio,[1]is video
+        videoTrackSettings = videoTrack.getSettings();
+        capabilities = videoTrack.getCapabilities();
         videoTrack.contentHint = document.getElementById("js-video-content").value;
-        document.getElementById("js-estimated-latency").textContent =videoTrackSettings.latency;
+        document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
         //console.log(targetDevice);
       })
     }
     else if (localVideoType == 'screen') {
       navigator.mediaDevices.getDisplayMedia({
-        audio: false,
+        audio: true,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
@@ -142,7 +148,7 @@ const Peer = window.Peer;
         videoTrack = localStream.getTracks()[0];
         var videoTrackSettings = videoTrack.getSettings();
         videoTrack.contentHint = document.getElementById("js-video-content").value;
-        document.getElementById("js-estimated-latency").textContent =videoTrackSettings.latency;
+        document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
       });
     }
 
@@ -215,20 +221,56 @@ const Peer = window.Peer;
   });
 
   function estimateMediaLatency() {
-    console.log("local stream is null");
+    // console.log("local stream is null");
     if (localStream != null) {
-      var videoTrackOr = localStream.getVideoTrack()[0];
-      var videoTrackSettings = videoTrackOr.getSettings();
-      console.log("null de ha aniyo");
+      //var videoTrackOr = localStream.getVideoTrack()[0];
+      //var videoTrackSettings = videoTrackOr.getSettings();
+      //console.log("null de ha aniyo");
       if ("latency" in videoTrackSettings) {
-       // local.getTracks;
+        // local.getTracks;
         document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
-        console.log("latency is arimasu");
+        //console.log("latency is arimasu");
       }
     }
   }
 
-  setInterval((estimateMediaLatency,100))
+  let inputPan = 0;
+  let inputTilt = 0;
+  let inputZoom = 0;
+
+  function adjustPTZ() {
+
+    if (videoTrack == null) {
+      console.log("local stream is null")
+    }
+    else if ((videoTrack != null)) {
+
+      if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
+
+        inputPan = Number(document.getElementById('video-pan').value) * 3600;
+        inputTilt = Number(document.getElementById('video-tilt').value) * 3600;
+        inputZoom = Number(document.getElementById('video-zoom').value);
+
+        let ptzConstraints = {
+          advanced: [{
+            pan: inputPan,
+            tilt: inputTilt,
+            zoom: inputZoom
+          }]
+        };
+
+        videoTrack.applyConstraints(ptzConstraints).then(() => {
+          console.log('PTZ constraints applied successfully');
+        })
+          .catch(err => {
+            console.error('Error applying PTZ constraints:', err);
+          });
+      }
+    }
+  }
+
+  setInterval(estimateMediaLatency, 100);
+  setInterval(adjustPTZ, 33);
 
   // Register callee handler
   function waitCall() {
@@ -269,6 +311,21 @@ const Peer = window.Peer;
 
         dataConnection.on('data', data => {
           messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
+          if(data.match("pan")) {
+            var splitPan=data.split(",");
+            document.getElementById('video-pan').value=splitPan[1];
+            console.log("Pan was adjusted");
+          }
+          else if(data.match("tilt")) {
+            var splitTilt=data.split(",");
+            document.getElementById('video-tilt').value=splitTilt[1];
+            console.log("Tilt was adjusted");
+          }
+          else if(data.match("zoom")) {
+            var splitZoom=data.split(",");
+            document.getElementById('video-zoom').value=splitZoom[1];
+            console.log("Zoom was adjusted");
+          }
         });
 
         dataConnection.once('close', () => {
