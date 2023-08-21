@@ -109,7 +109,7 @@ const Peer = window.Peer;
     }
     if (localVideoType == 'camera') {
       navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
@@ -134,7 +134,7 @@ const Peer = window.Peer;
     }
     else if (localVideoType == 'screen') {
       navigator.mediaDevices.getDisplayMedia({
-        audio: true,
+        audio: false,
         video: {
           width: Number(document.getElementById('video-width').value),
           height: Number(document.getElementById('video-height').value),
