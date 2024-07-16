@@ -269,7 +269,7 @@ const Peer = window.Peer;
     }
   }
 
-  setInterval(estimateMediaLatency, 100);
+  //setInterval(estimateMediaLatency, 100);
   setInterval(adjustPTZ, 33);
 
   // Register callee handler
