@@ -129,7 +129,7 @@ const Peer = window.Peer;
         capabilities = videoTrack.getCapabilities();
         videoTrack.contentHint = document.getElementById("js-video-content").value;
         document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
-        //console.log(targetDevice);
+        console.log(targetDevice);
       })
     }
     else if (localVideoType == 'screen') {
