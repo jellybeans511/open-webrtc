@@ -243,7 +243,7 @@ const Peer = window.Peer;
     //if (videoTrack == null) {
       //console.log("local stream is null")
     //}
-    else if ((videoTrack != null)) {
+   // else if ((videoTrack != null)) {
 
       if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
 
