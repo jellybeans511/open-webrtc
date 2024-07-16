@@ -120,6 +120,7 @@ const Peer = window.Peer;
           zoom: true
         }
       }).then(function (mediaStream) {
+        console.log(targetDevice);
         localStream = mediaStream;
         localVideo.srcObject = mediaStream;
         localVideo.playsInline = true;
