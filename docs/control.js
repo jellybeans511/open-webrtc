@@ -226,11 +226,11 @@ const Peer = window.Peer;
       //var videoTrackOr = localStream.getVideoTrack()[0];
       //var videoTrackSettings = videoTrackOr.getSettings();
       //console.log("null de ha aniyo");
-      if ("latency" in videoTrackSettings) {
+      //if ("latency" in videoTrackSettings) {
         // local.getTracks;
-        document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
+        //document.getElementById("js-estimated-latency").textContent = videoTrackSettings.latency;
         //console.log("latency is arimasu");
-      }
+      //}
     }
   }
 
@@ -240,9 +240,9 @@ const Peer = window.Peer;
 
   function adjustPTZ() {
 
-    if (videoTrack == null) {
-      console.log("local stream is null")
-    }
+    //if (videoTrack == null) {
+      //console.log("local stream is null")
+    //}
     else if ((videoTrack != null)) {
 
       if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
