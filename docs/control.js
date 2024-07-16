@@ -240,10 +240,10 @@ const Peer = window.Peer;
 
   function adjustPTZ() {
 
-    //if (videoTrack == null) {
-      //console.log("local stream is null")
-    //}
-   // else if ((videoTrack != null)) {
+    if (videoTrack == null) {
+      console.log("local stream is null")
+    }
+    else if ((videoTrack != null)) {
 
       if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
 
@@ -269,7 +269,7 @@ const Peer = window.Peer;
     }
   }
 
-  //setInterval(estimateMediaLatency, 100);
+  setInterval(estimateMediaLatency, 100);
   setInterval(adjustPTZ, 33);
 
   // Register callee handler
