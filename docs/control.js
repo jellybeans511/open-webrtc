@@ -172,6 +172,7 @@ const Peer = window.Peer;
   // Request permission and re-enumerate to get proper device labels
   async function requestPermissionAndEnumerate() {
     try {
+      // Request basic permission without specific device constraints for initial enumeration
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true
@@ -253,8 +254,8 @@ const Peer = window.Peer;
       
       // Add deviceId constraint if a specific camera is selected
       if (selectedCameraId) {
-        videoConstraints.deviceId = selectedCameraId;
-        console.log("Using specific camera device:", selectedCameraId);
+        videoConstraints.deviceId = { exact: selectedCameraId };
+        console.log("Using specific camera device with exact constraint:", selectedCameraId);
       } else {
         console.log("Using default camera device");
       }
