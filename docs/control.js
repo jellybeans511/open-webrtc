@@ -18,8 +18,11 @@ const Peer = window.Peer;
   const remoteId = document.getElementById("js-remote-id");
   const messages = document.getElementById("js-messages");
   let videoDevicesElement = document.getElementById("video-device");
-  let cameraOptions = document.querySelector("#cameraSelect");
+  let cameraOptions = document.getElementById("cameraSelect");
   let micOptions = document.querySelector(".mic-select");
+  
+  console.log("Camera select element:", cameraOptions);
+  console.log("Mic select element:", micOptions);
   let localVideoBox = document.getElementsByName("stream-type");
   let audioSettingBox = document.getElementsByName("audio-setting");
   let localVideoCodec = document.getElementById("js-video-codec").value;
@@ -54,10 +57,15 @@ const Peer = window.Peer;
 
   // Combined device enumeration for cameras and microphones
   async function enumerateDevices() {
+    console.log('Starting device enumeration...');
+    console.log('Camera options element exists:', !!cameraOptions);
+    console.log('Mic options element exists:', !!micOptions);
+    
     try {
       // First, request permission to access media devices to get proper labels
       let permissionStream = null;
       try {
+        console.log('Requesting media permissions...');
         permissionStream = await navigator.mediaDevices.getUserMedia({ 
           video: true, 
           audio: true 
@@ -67,7 +75,9 @@ const Peer = window.Peer;
         console.log('Could not get media permissions, device labels may be limited:', permError);
       }
       
+      console.log('Getting device list...');
       const devices = await navigator.mediaDevices.enumerateDevices();
+      console.log('All devices found:', devices);
       
       // Stop the permission stream as we only needed it for permissions
       if (permissionStream) {
@@ -76,15 +86,22 @@ const Peer = window.Peer;
       
       // Filter cameras - support both old and new implementations
       availableCameras = devices.filter(device => device.kind === 'videoinput');
+      console.log('Filtered camera devices:', availableCameras);
+      
       if (cameraOptions) {
+        console.log('Populating camera options...');
         cameraOptions.innerHTML = '<option value="">Select camera</option>';
         availableCameras.forEach((device, index) => {
           const option = document.createElement('option');
           option.value = device.deviceId;
           option.id = device.deviceId;
           option.text = device.label || `Camera ${index + 1}`;
+          console.log(`Adding camera option: ${option.text} (${option.value})`);
           cameraOptions.appendChild(option);
         });
+        console.log('Camera options populated. Total options:', cameraOptions.options.length);
+      } else {
+        console.log('Camera options element not found!');
       }
       
       // Filter microphones - if mic selector exists
