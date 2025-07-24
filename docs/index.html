@@ -24,34 +24,39 @@
 
       <div class="local-stream">
         <video id="js-local-stream" width="480" height="320"></video><br>
+        <p>Estimated camera latency: <span id ="js-estimated-latency"></span> sec</p>
         <p>your name. <input type="text" placeholder="Kimino nawa." id="js-your-id">
         <button id="js-makepeer-trigger">Make Peer</button>
         <p>Your ID: <span id="js-local-id"></span></p>
 
         <form id="video-box">CameraCapture:<input type="radio" name="stream-type" value="camera" checked> ScreenShare:<input type="radio" name="stream-type"value="screen"></form><br>
-        SelectDevice:<select name="" id="" class="device-select"><option value="">Select camera</option></select><br>
+        SelectDevice:<select id="cameraSelect" disabled> </select><br>
         <form id="audio-box">Audio On:<input type="radio" name="audio-setting" value="on" checked> Audio Off:<input type="radio" name="audio-setting" value="off"></form><br>
         SelectMicrophone:<select name="" id="" class="mic-select"><option value="">Select microphone</option></select><br>
-        VideoHeight:<input type="number" id="video-height" max="1080" value="720"><br>
-        VideoWidth:<input type="number" id="video-width" max="1920" value="1280"><br>
-        FrameRate:<input type="number" id="video-rate" min="1" max="60" value="15">Hz<br>
-        BitRate:<input type="number" id="js-video-byte" min="500" value="1500">kbps<br>
+        VideoHeight:<input type="number" id="video-height" max="4320" value="1080"><br>
+        VideoWidth:<input type="number" id="video-width" max="7680" value="1920"><br>
+        FrameRate:<input type="number" id="video-rate" min="1" max="60" value="30">Hz<br>
+        BitRate:<input type="number" id="js-video-byte" min="500" value="3000">kbps<br>
         VideoCodec:<select id="js-video-codec">
-          <option value="VP9">VP9:動きに強い,CPU負荷中,普及率普通</option>
-          <option value="VP8">VP8:特徴無し,CPU負荷小,普及率普通</option>
-          <option value="H264">H264:動きに弱い,負荷小,普及率高</option>
-          <option value="AV1">AV1:動きに強い,負荷大,普及率低</option>
+          <option value="VP9">VP9:Recommend</option>
+          <option value="VP8">VP8:For low power machine</option>
+          <option value="H264">H264:Not recommend in WebRTC</option>
+          <option value="AV1">AV1:For Jetson Orin</option>
           </select><br>
           ContentType:<select id="js-video-content">
-            <option value="motion">motion</option>
-            <option value="text">text</option>
-            <option value="detail">detail</option>
+            <option value="motion">motion:(Movie, Game, Remote monitoring)</option>
+            <option value="text">text:(Power point, Text content)</option>
+            <option value="detail">detail:(Picture, Art content)</option>
             <option value="">default</option>
             </select><br>
-        <button id="js-startcapture-trigger">Get Capture</button>
+        <button id="js-startcapture-trigger">Get Capture</button><br>
+        <button id="js-deletecapture-trigger">Delete Capture Source</button><br>
         <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
         <button id="js-call-trigger">Call</button>
-        <button id="js-close-trigger">Close</button>
+        <button id="js-close-trigger">Close</button><br>
+        Pan:<input type="number" id="video-pan" max="150" min="-150" value="0">deg<br>
+        Tilt:<input type="number" id="video-tilt" max="150" min="-150" value="0">deg<br>
+        Zoom:<input type="number" id="video-zoom" min="100" max="400" value="100">%<br>
       </div>
      <div class="p2p-data">
        <pre class = "messages" id = "js-messages"></pre>

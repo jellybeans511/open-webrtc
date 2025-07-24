@@ -1,4 +1,4 @@
-const API_KEY = "e316eaa7-4c1c-468c-b23a-9ce51b074ab7";
+const API_KEY = "94d5c621-415d-4003-a1be-822df987831f";
 //const username = window.prompt("Please input user name", "")
 //const localVideoType = window.confirm("Is it okay to use the camera? \n If this answer is No, use schreen sharing");
 //sa
@@ -9,6 +9,7 @@ const Peer = window.Peer;
   const localId = document.getElementById("js-local-id");
   const makePeerTrigger = document.getElementById("js-makepeer-trigger");
   const captureTrigger = document.getElementById("js-startcapture-trigger");
+  const deleteCapturteTrigger = document.getElementById("js-deletecapture-trigger");
   const callTrigger = document.getElementById("js-call-trigger");
   const closeTrigger = document.getElementById("js-close-trigger");
   const localText = document.getElementById("js-local-text");
@@ -17,7 +18,7 @@ const Peer = window.Peer;
   const remoteId = document.getElementById("js-remote-id");
   const messages = document.getElementById("js-messages");
   let videoDevicesElement = document.getElementById("video-device");
-  let cameraOptions = document.querySelector(".device-select");
+  let cameraOptions = document.querySelector("#cameraSelect");
   let micOptions = document.querySelector(".mic-select");
   let localVideoBox = document.getElementsByName("stream-type");
   let audioSettingBox = document.getElementsByName("audio-setting");
@@ -26,6 +27,18 @@ const Peer = window.Peer;
   const meta = document.getElementById("js-meta");
   const sdkSrc = document.querySelector("script[src*=skyway]");
   let peer = null;
+  let targetDevice = null;
+  let mediaConnection = null;
+  let dataConnection = null;
+  let videoTrack;
+  var videoTrackSettings;
+  var capabilities;
+
+  let localStream = null;
+  let ptzSupported = false;
+  let availableCameras = [];
+  let availableMicrophones = [];
+  let currentAudioSetting = "on";
 
   makePeerTrigger.addEventListener("click", () => {
     var userName = document.getElementById("js-your-id").value;
@@ -36,55 +49,71 @@ const Peer = window.Peer;
     });
     //document.getElementById('js-local-id') = String(peer);
     peer.on("open", (id) => (localId.textContent = id));
+    waitCall();
   });
 
-  // Enumerate camera and microphone devices
+  // Combined device enumeration for cameras and microphones
   async function enumerateDevices() {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       
-      // Filter cameras
+      // Filter cameras - support both old and new implementations
       availableCameras = devices.filter(device => device.kind === 'videoinput');
-      cameraOptions.innerHTML = '<option value="">Select camera</option>';
-      availableCameras.forEach((device, index) => {
-        const option = document.createElement('option');
-        option.value = device.deviceId;
-        option.text = device.label || `Camera ${index + 1}`;
-        cameraOptions.appendChild(option);
-      });
+      if (cameraOptions) {
+        cameraOptions.innerHTML = '<option value="">Select camera</option>';
+        availableCameras.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.id = device.deviceId;
+          option.text = device.label || `Camera ${index + 1}`;
+          cameraOptions.appendChild(option);
+        });
+      }
       
-      // Filter microphones
-      availableMicrophones = devices.filter(device => device.kind === 'audioinput');
-      micOptions.innerHTML = '<option value="">Select microphone</option>';
-      availableMicrophones.forEach((device, index) => {
-        const option = document.createElement('option');
-        option.value = device.deviceId;
-        option.text = device.label || `Microphone ${index + 1}`;
-        micOptions.appendChild(option);
-      });
+      // Filter microphones - if mic selector exists
+      if (micOptions) {
+        availableMicrophones = devices.filter(device => device.kind === 'audioinput');
+        micOptions.innerHTML = '<option value="">Select microphone</option>';
+        availableMicrophones.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Microphone ${index + 1}`;
+          micOptions.appendChild(option);
+        });
+      }
       
       console.log(`Found ${availableCameras.length} camera devices:`, availableCameras);
-      console.log(`Found ${availableMicrophones.length} microphone devices:`, availableMicrophones);
+      if (availableMicrophones.length > 0) {
+        console.log(`Found ${availableMicrophones.length} microphone devices:`, availableMicrophones);
+      }
     } catch (error) {
       console.error('Error enumerating devices:', error);
     }
   }
 
+  // Camera select event handler for compatibility
+  if (cameraOptions) {
+    cameraOptions.onchange = _ => {
+      const selectedOption = cameraOptions.selectedOptions[0];
+      if (selectedOption) {
+        targetDevice = selectedOption.id || selectedOption.value;
+      }
+    };
+  }
+
   // Initialize device enumeration when page loads
   enumerateDevices();
+  
+  // Listen for device changes
+  if ("mediaDevices" in navigator) {
+    navigator.mediaDevices.addEventListener("devicechange", enumerateDevices);
+  }
 
   let videoOptions = {
     videoBandwidth: Number(document.getElementById("js-video-byte").value),
     videoCodec: String(document.getElementById("js-video-codec").value),
     audioCodec: "opus",
   };
-
-  let localStream = null;
-  let videoTrack = null;
-  let ptzSupported = false;
-  let availableCameras = [];
-  let availableMicrophones = [];
-  let currentAudioSetting = "on";
 
   captureTrigger.addEventListener("click", () => {
     for (i = 0; i < localVideoBox.length; ++i) {
@@ -93,26 +122,32 @@ const Peer = window.Peer;
       }
     }
     
-    // Get current audio setting
-    for (i = 0; i < audioSettingBox.length; ++i) {
-      if (audioSettingBox[i].checked) {
-        currentAudioSetting = audioSettingBox[i].value;
+    // Get current audio setting if audio controls exist
+    if (audioSettingBox && audioSettingBox.length > 0) {
+      for (i = 0; i < audioSettingBox.length; ++i) {
+        if (audioSettingBox[i].checked) {
+          currentAudioSetting = audioSettingBox[i].value;
+        }
       }
     }
+
     if (localVideoType == "camera") {
       // Get selected device IDs
-      const selectedCameraId = cameraOptions.value;
-      const selectedMicId = micOptions.value;
+      const selectedCameraId = cameraOptions ? (cameraOptions.value || targetDevice) : null;
+      const selectedMicId = micOptions ? micOptions.value : null;
       
       const videoConstraints = {
         width: Number(document.getElementById("video-width").value),
         height: Number(document.getElementById("video-height").value),
         frameRate: Number(document.getElementById("video-rate").value),
+        pan: true,
+        tilt: true,
+        zoom: true
       };
       
       // Add deviceId constraint if a specific camera is selected
       if (selectedCameraId) {
-        videoConstraints.deviceId = { exact: selectedCameraId };
+        videoConstraints.deviceId = selectedCameraId;
         console.log("Using specific camera device:", selectedCameraId);
       } else {
         console.log("Using default camera device");
@@ -142,12 +177,26 @@ const Peer = window.Peer;
           localVideo.srcObject = mediaStream;
           localVideo.playsInline = true;
           localVideo.play().catch(console.error);
-          videoTrack = localStream.getVideoTracks()[0];
-          videoTrack.contentHint =
-            document.getElementById("js-video-content").value;
           
-          // Check PTZ capabilities
-          checkPTZSupport();
+          // Get video track - handle both audio and video tracks
+          const videoTracks = localStream.getVideoTracks();
+          if (videoTracks.length > 0) {
+            videoTrack = videoTracks[0];
+            videoTrackSettings = videoTrack.getSettings();
+            capabilities = videoTrack.getCapabilities();
+            videoTrack.contentHint = document.getElementById("js-video-content").value;
+            
+            // Display latency if element exists
+            const latencyElement = document.getElementById("js-estimated-latency");
+            if (latencyElement && videoTrackSettings.latency) {
+              latencyElement.textContent = videoTrackSettings.latency;
+            }
+            
+            // Check PTZ capabilities
+            checkPTZSupport();
+          }
+          
+          console.log("Stream started with device:", selectedCameraId || "default");
         });
     } else if (localVideoType == "screen") {
       navigator.mediaDevices
@@ -164,14 +213,31 @@ const Peer = window.Peer;
           localVideo.srcObject = mediaStream;
           localVideo.playsInline = true;
           localVideo.play().catch(console.error);
-          videoTrack = localStream.getVideoTracks()[0];
-          videoTrack.contentHint =
-            document.getElementById("js-video-content").value;
+          
+          const videoTracks = localStream.getVideoTracks();
+          if (videoTracks.length > 0) {
+            videoTrack = videoTracks[0];
+            var videoTrackSettings = videoTrack.getSettings();
+            videoTrack.contentHint = document.getElementById("js-video-content").value;
+            
+            const latencyElement = document.getElementById("js-estimated-latency");
+            if (latencyElement && videoTrackSettings.latency) {
+              latencyElement.textContent = videoTrackSettings.latency;
+            }
+          }
         });
     }
 
     // detail,motion,text
   });
+
+  // Delete capture trigger
+  if (deleteCapturteTrigger) {
+    deleteCapturteTrigger.addEventListener('click', () => {
+      localStream = null;
+      localVideo.srcObject = null;
+    });
+  }
 
   // PTZ capability check function
   async function checkPTZSupport() {
@@ -247,7 +313,7 @@ const Peer = window.Peer;
   async function restartStreamWithAudio() {
     if (!localStream) return;
     
-    const selectedMicId = micOptions.value;
+    const selectedMicId = micOptions ? micOptions.value : null;
     const audioConstraints = {};
     if (selectedMicId) {
       audioConstraints.deviceId = { exact: selectedMicId };
@@ -269,36 +335,76 @@ const Peer = window.Peer;
     }
   }
 
-  // Audio setting change listener
-  audioSettingBox.forEach(radio => {
-    radio.addEventListener('change', (event) => {
-      if (event.target.checked) {
-        const newSetting = event.target.value;
-        if (newSetting !== currentAudioSetting) {
-          currentAudioSetting = newSetting;
-          toggleAudio(newSetting === "on");
+  // Audio setting change listener - only if audio controls exist
+  if (audioSettingBox && audioSettingBox.length > 0) {
+    audioSettingBox.forEach(radio => {
+      radio.addEventListener('change', (event) => {
+        if (event.target.checked) {
+          const newSetting = event.target.value;
+          if (newSetting !== currentAudioSetting) {
+            currentAudioSetting = newSetting;
+            toggleAudio(newSetting === "on");
+          }
+        }
+      });
+    });
+  }
+
+  // Legacy PTZ adjustment function for compatibility
+  let inputPan = 0;
+  let inputTilt = 0;
+  let inputZoom = 0;
+
+  function adjustPTZ() {
+    if (videoTrack == null) {
+      console.log("local stream is null")
+    }
+    else if ((videoTrack != null)) {
+      if ("pan" in videoTrackSettings || "tilt" in videoTrackSettings || "zoom" in videoTrackSettings) {
+        const panElement = document.getElementById('video-pan');
+        const tiltElement = document.getElementById('video-tilt');
+        const zoomElement = document.getElementById('video-zoom');
+        
+        if (panElement && tiltElement && zoomElement) {
+          inputPan = Number(panElement.value) * 3600;
+          inputTilt = Number(tiltElement.value) * 3600;
+          inputZoom = Number(zoomElement.value);
+
+          let ptzConstraints = {
+            advanced: [{
+              pan: inputPan,
+              tilt: inputTilt,
+              zoom: inputZoom
+            }]
+          };
+
+          videoTrack.applyConstraints(ptzConstraints).then(() => {
+            console.log('PTZ constraints applied successfully');
+          })
+          .catch(err => {
+            console.error('Error applying PTZ constraints:', err);
+          });
         }
       }
-    });
-  });
+    }
+  }
 
-  // Expose PTZ functions globally for easy access
-  window.ptzControl = {
-    isPTZSupported: () => ptzSupported,
-    setPan: (value) => applyPTZConstraints(value, undefined, undefined),
-    setTilt: (value) => applyPTZConstraints(undefined, value, undefined),
-    setZoom: (value) => applyPTZConstraints(undefined, undefined, value),
-    setPTZ: (pan, tilt, zoom) => applyPTZConstraints(pan, tilt, zoom)
-  };
+  function estimateMediaLatency() {
+    if (localStream != null) {
+      // Legacy compatibility function - latency is now handled in capture
+    }
+  }
 
-  // Expose audio control functions globally
-  window.audioControl = {
-    toggleAudio: (enabled) => toggleAudio(enabled),
-    getCurrentAudioSetting: () => currentAudioSetting
-  };
+  // Start periodic functions
+  setInterval(estimateMediaLatency, 100);
+  setInterval(adjustPTZ, 33);
 
   // Register caller handler
   callTrigger.addEventListener("click", () => {
+    if (peer == null) {
+      console.log('Peer is not opened');
+      return;
+    }
     if (peer != null) {
       // Note that you need to ensure the peer has connected to signaling server
       // before using methods of peer instance.
@@ -335,7 +441,6 @@ const Peer = window.Peer;
 
       dataConnection.once("open", async () => {
         messages.textContent += `=== DataConnection has been opened ===\n`;
-
         sendTrigger.addEventListener("click", onClickSend);
       });
 
@@ -361,70 +466,102 @@ const Peer = window.Peer;
   });
 
   // Register callee handler
-  if (peer != null) {
-    peer.on("call", (mediaConnection) => {
-      console.log(mediaConnection.getstats());
-      console.log("Moriteu:", videoTrack.contentHint);
+  function waitCall() {
+    if (peer != null) {
+      peer.on('call', mediaConnection => {
+        let videoAnswerOptions = {
+          videoBandwidth: Number(document.getElementById('js-video-byte').value),
+          videoCodec: String(document.getElementById('js-video-codec').value),
+          audioCodec: "opus"
+        };
 
-      videoOptions.videoBandwidth = Number(
-        document.getElementById("js-video-byte").value
-      );
-      videoOptions.videoCodec = String(
-        document.getElementById("js-video-codec").value
-      );
+        mediaConnection.answer(localStream, videoAnswerOptions);
 
-      mediaConnection.answer(localStream, videoOptions);
+        mediaConnection.on('stream', async (stream) => {
+          // Render remote stream for callee
+          remoteVideo.srcObject = stream;
+          remoteVideo.playsInline = true;
+          await remoteVideo.play().catch(console.error);
+        });
 
-      mediaConnection.on("stream", async (stream) => {
-        // Render remote stream for callee
-        remoteVideo.srcObject = stream;
-        remoteVideo.playsInline = true;
-        await remoteVideo.play().catch(console.error);
+        mediaConnection.once('close', () => {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        });
+
+        closeTrigger.addEventListener('click', () => mediaConnection.close(true));
       });
 
-      mediaConnection.once("close", () => {
-        remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
-        remoteVideo.srcObject = null;
-      });
+      peer.on('connection', dataConnection => {
+        dataConnection.once('open', async () => {
+          messages.textContent += `=== DataConnection has been opened ===\n`;
+          sendTrigger.addEventListener('click', onClickSend);
+        });
 
-      closeTrigger.addEventListener("click", () => mediaConnection.close(true));
-    });
+        dataConnection.on('data', data => {
+          messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
+          // Remote PTZ control
+          if(data.match("pan")) {
+            var splitPan=data.split(",");
+            const panElement = document.getElementById('video-pan');
+            if (panElement) {
+              panElement.value = splitPan[1];
+              console.log("Pan was adjusted");
+            }
+          }
+          else if(data.match("tilt")) {
+            var splitTilt=data.split(",");
+            const tiltElement = document.getElementById('video-tilt');
+            if (tiltElement) {
+              tiltElement.value = splitTilt[1];
+              console.log("Tilt was adjusted");
+            }
+          }
+          else if(data.match("zoom")) {
+            var splitZoom=data.split(",");
+            const zoomElement = document.getElementById('video-zoom');
+            if (zoomElement) {
+              zoomElement.value = splitZoom[1];
+              console.log("Zoom was adjusted");
+            }
+          }
+        });
 
-    peer.on("connection", (dataConnection) => {
-      console.log(Peer.getstats());
-      dataConnection.once("open", async () => {
-        messages.textContent += `=== DataConnection has been opened ===\n`;
-        sendTrigger.addEventListener("click", onClickSend);
-      });
+        dataConnection.once('close', () => {
+          messages.textContent += `=== DataConnection has been closed ===\n`;
+          sendTrigger.removeEventListener('click', onClickSend);
+        });
 
-      dataConnection.on("data", (data) => {
-        messages.textContent += `${dataConnection.remoteId}: ${data}\n`;
-        console.log(mediaConnection.getstats());
-        function statsConsole() {
-          console.log(mediaConnection.getstats());
+        // Register closing handler
+        closeTrigger.addEventListener('click', () => dataConnection.close(true), {
+          once: true,
+        });
+
+        function onClickSend() {
+          const data = localText.value;
+          dataConnection.send(data);
+
+          messages.textContent += `You: ${data}\n`;
+          localText.value = '';
         }
-        setInterval(() => statsConsole, 1000);
       });
-
-      dataConnection.once("close", () => {
-        messages.textContent += `=== DataConnection has been closed ===\n`;
-        sendTrigger.removeEventListener("click", onClickSend);
-      });
-
-      // Register closing handler
-      closeTrigger.addEventListener("click", () => dataConnection.close(true), {
-        once: true,
-      });
-
-      function onClickSend() {
-        const data = localText.value;
-        dataConnection.send(data);
-
-        messages.textContent += `You: ${data}\n`;
-        localText.value = "";
-      }
-    });
-
-    peer.on("error", console.error);
+      peer.on('error', console.error);
+    }
   }
+
+  // Expose PTZ functions globally for easy access
+  window.ptzControl = {
+    isPTZSupported: () => ptzSupported,
+    setPan: (value) => applyPTZConstraints(value, undefined, undefined),
+    setTilt: (value) => applyPTZConstraints(undefined, value, undefined),
+    setZoom: (value) => applyPTZConstraints(undefined, undefined, value),
+    setPTZ: (pan, tilt, zoom) => applyPTZConstraints(pan, tilt, zoom)
+  };
+
+  // Expose audio control functions globally
+  window.audioControl = {
+    toggleAudio: (enabled) => toggleAudio(enabled),
+    getCurrentAudioSetting: () => currentAudioSetting
+  };
+
 })();
