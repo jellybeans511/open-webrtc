@@ -55,7 +55,24 @@ const Peer = window.Peer;
   // Combined device enumeration for cameras and microphones
   async function enumerateDevices() {
     try {
+      // First, request permission to access media devices to get proper labels
+      let permissionStream = null;
+      try {
+        permissionStream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        console.log('Media permissions granted');
+      } catch (permError) {
+        console.log('Could not get media permissions, device labels may be limited:', permError);
+      }
+      
       const devices = await navigator.mediaDevices.enumerateDevices();
+      
+      // Stop the permission stream as we only needed it for permissions
+      if (permissionStream) {
+        permissionStream.getTracks().forEach(track => track.stop());
+      }
       
       // Filter cameras - support both old and new implementations
       availableCameras = devices.filter(device => device.kind === 'videoinput');
