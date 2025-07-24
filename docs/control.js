@@ -58,7 +58,18 @@ const Peer = window.Peer;
   // Get available media devices - based on WebRTC samples
   async function getDevices() {
     try {
+      console.log('Calling navigator.mediaDevices.enumerateDevices()...');
       const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+      console.log('Raw device enumeration result:', deviceInfos);
+      console.log('Total devices found:', deviceInfos.length);
+      
+      // Count devices by type
+      const deviceCounts = deviceInfos.reduce((counts, device) => {
+        counts[device.kind] = (counts[device.kind] || 0) + 1;
+        return counts;
+      }, {});
+      console.log('Device counts by type:', deviceCounts);
+      
       gotDevices(deviceInfos);
     } catch (error) {
       console.error('Error enumerating devices:', error);
@@ -103,7 +114,12 @@ const Peer = window.Peer;
     // Process each device
     for (let i = 0; i !== deviceInfos.length; ++i) {
       const deviceInfo = deviceInfos[i];
-      console.log('Processing device:', deviceInfo.kind, deviceInfo.label, deviceInfo.deviceId);
+      console.log(`Device ${i}:`, {
+        kind: deviceInfo.kind,
+        label: deviceInfo.label,
+        deviceId: deviceInfo.deviceId,
+        groupId: deviceInfo.groupId
+      });
       
       const option = document.createElement('option');
       option.value = deviceInfo.deviceId;
@@ -111,17 +127,37 @@ const Peer = window.Peer;
       if (deviceInfo.kind === 'audioinput') {
         option.text = deviceInfo.label || `Microphone ${availableMicrophones.length + 1}`;
         availableMicrophones.push(deviceInfo);
+        console.log('Adding microphone option:', option.text, option.value);
         if (micOptions) {
           micOptions.appendChild(option);
+          console.log('Microphone option added to select element');
+        } else {
+          console.log('micOptions element not found!');
         }
       } else if (deviceInfo.kind === 'videoinput') {
         option.text = deviceInfo.label || `Camera ${availableCameras.length + 1}`;
         availableCameras.push(deviceInfo);
+        console.log('Adding camera option:', option.text, option.value);
+        console.log('Camera option element:', option);
+        console.log('cameraOptions element exists:', !!cameraOptions);
         if (cameraOptions) {
+          console.log('Before appendChild - cameraOptions children count:', cameraOptions.children.length);
           cameraOptions.appendChild(option);
+          console.log('After appendChild - cameraOptions children count:', cameraOptions.children.length);
+          console.log('Camera option added to select element');
+        } else {
+          console.log('cameraOptions element not found!');
         }
+      } else {
+        console.log('Ignoring device kind:', deviceInfo.kind);
       }
     }
+    
+    console.log('Final device counts:');
+    console.log('availableCameras array:', availableCameras);
+    console.log('availableMicrophones array:', availableMicrophones);
+    console.log('cameraOptions final children count:', cameraOptions ? cameraOptions.children.length : 'element not found');
+    console.log('micOptions final children count:', micOptions ? micOptions.children.length : 'element not found');
 
     console.log(`Found ${availableCameras.length} cameras and ${availableMicrophones.length} microphones`);
     
