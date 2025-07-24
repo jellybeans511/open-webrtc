@@ -55,74 +55,110 @@ const Peer = window.Peer;
     waitCall();
   });
 
-  // Combined device enumeration for cameras and microphones
+  // Get available media devices - based on WebRTC samples
+  async function getDevices() {
+    try {
+      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+      gotDevices(deviceInfos);
+    } catch (error) {
+      console.error('Error enumerating devices:', error);
+    }
+  }
+
+  // Process device information and populate selectors
+  function gotDevices(deviceInfos) {
+    console.log('Processing devices:', deviceInfos);
+    
+    // Clear existing options
+    if (cameraOptions) {
+      while (cameraOptions.firstChild) {
+        cameraOptions.removeChild(cameraOptions.firstChild);
+      }
+    }
+    if (micOptions) {
+      while (micOptions.firstChild) {
+        micOptions.removeChild(micOptions.firstChild);
+      }
+    }
+
+    // Reset arrays
+    availableCameras = [];
+    availableMicrophones = [];
+
+    // Add default options
+    if (cameraOptions) {
+      const defaultVideoOption = document.createElement('option');
+      defaultVideoOption.value = '';
+      defaultVideoOption.text = 'Select camera';
+      cameraOptions.appendChild(defaultVideoOption);
+    }
+
+    if (micOptions) {
+      const defaultAudioOption = document.createElement('option');
+      defaultAudioOption.value = '';
+      defaultAudioOption.text = 'Select microphone';
+      micOptions.appendChild(defaultAudioOption);
+    }
+
+    // Process each device
+    for (let i = 0; i !== deviceInfos.length; ++i) {
+      const deviceInfo = deviceInfos[i];
+      console.log('Processing device:', deviceInfo.kind, deviceInfo.label, deviceInfo.deviceId);
+      
+      const option = document.createElement('option');
+      option.value = deviceInfo.deviceId;
+
+      if (deviceInfo.kind === 'audioinput') {
+        option.text = deviceInfo.label || `Microphone ${availableMicrophones.length + 1}`;
+        availableMicrophones.push(deviceInfo);
+        if (micOptions) {
+          micOptions.appendChild(option);
+        }
+      } else if (deviceInfo.kind === 'videoinput') {
+        option.text = deviceInfo.label || `Camera ${availableCameras.length + 1}`;
+        availableCameras.push(deviceInfo);
+        if (cameraOptions) {
+          cameraOptions.appendChild(option);
+        }
+      }
+    }
+
+    console.log(`Found ${availableCameras.length} cameras and ${availableMicrophones.length} microphones`);
+    
+    // Check if we have permission (devices will have labels if we do)
+    const hasPermission = deviceInfos.some(device => device.label !== '');
+    if (!hasPermission) {
+      console.log('No media permissions - requesting access to get device labels');
+      requestPermissionAndEnumerate();
+    }
+  }
+
+  // Request permission and re-enumerate to get proper device labels
+  async function requestPermissionAndEnumerate() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      });
+      console.log('Permission granted, re-enumerating devices...');
+      
+      // Stop the stream immediately as we only needed it for permission  
+      stream.getTracks().forEach(track => track.stop());
+      
+      // Re-enumerate now that we have permission
+      await getDevices();
+    } catch (error) {
+      console.log('Permission denied or error:', error);
+    }
+  }
+
+  // Combined device enumeration function for compatibility
   async function enumerateDevices() {
     console.log('Starting device enumeration...');
     console.log('Camera options element exists:', !!cameraOptions);
     console.log('Mic options element exists:', !!micOptions);
     
-    try {
-      // First, request permission to access media devices to get proper labels
-      let permissionStream = null;
-      try {
-        console.log('Requesting media permissions...');
-        permissionStream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
-        });
-        console.log('Media permissions granted');
-      } catch (permError) {
-        console.log('Could not get media permissions, device labels may be limited:', permError);
-      }
-      
-      console.log('Getting device list...');
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      console.log('All devices found:', devices);
-      
-      // Stop the permission stream as we only needed it for permissions
-      if (permissionStream) {
-        permissionStream.getTracks().forEach(track => track.stop());
-      }
-      
-      // Filter cameras - support both old and new implementations
-      availableCameras = devices.filter(device => device.kind === 'videoinput');
-      console.log('Filtered camera devices:', availableCameras);
-      
-      if (cameraOptions) {
-        console.log('Populating camera options...');
-        cameraOptions.innerHTML = '<option value="">Select camera</option>';
-        availableCameras.forEach((device, index) => {
-          const option = document.createElement('option');
-          option.value = device.deviceId;
-          option.id = device.deviceId;
-          option.text = device.label || `Camera ${index + 1}`;
-          console.log(`Adding camera option: ${option.text} (${option.value})`);
-          cameraOptions.appendChild(option);
-        });
-        console.log('Camera options populated. Total options:', cameraOptions.options.length);
-      } else {
-        console.log('Camera options element not found!');
-      }
-      
-      // Filter microphones - if mic selector exists
-      if (micOptions) {
-        availableMicrophones = devices.filter(device => device.kind === 'audioinput');
-        micOptions.innerHTML = '<option value="">Select microphone</option>';
-        availableMicrophones.forEach((device, index) => {
-          const option = document.createElement('option');
-          option.value = device.deviceId;
-          option.text = device.label || `Microphone ${index + 1}`;
-          micOptions.appendChild(option);
-        });
-      }
-      
-      console.log(`Found ${availableCameras.length} camera devices:`, availableCameras);
-      if (availableMicrophones.length > 0) {
-        console.log(`Found ${availableMicrophones.length} microphone devices:`, availableMicrophones);
-      }
-    } catch (error) {
-      console.error('Error enumerating devices:', error);
-    }
+    await getDevices();
   }
 
   // Camera select event handler for compatibility

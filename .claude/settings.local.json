@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git pull:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:webrtc.github.io)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": []
   }
