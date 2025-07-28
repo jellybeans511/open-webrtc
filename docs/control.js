@@ -233,13 +233,7 @@ const Peer = window.Peer;
 
   // Listen for device changes
   if ("mediaDevices" in navigator) {
-    navigator.mediaDevices
-      .addEventListener("devicechange", enumerateDevices)
-      .then((ds) =>
-        ds
-          .filter((d) => d.kind === "videoinput")
-          .forEach((d) => console.log(d.label, d.deviceId, d.groupId))
-      );
+    navigator.mediaDevices.addEventListener("devicechange", enumerateDevices);
   }
 
   let videoOptions = {
